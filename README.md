@@ -9,7 +9,7 @@ that adds:
 - Stable FP32 decoding
   – VAE runs in float32 with tiling/slicing to reduce NaNs and OOMs
 - Standard SDXL path with fp32 decode
-  – a `generate_fixed` helper for “vanilla” SDXL images
+  – a `generate_fixed` helper for "vanilla" SDXL images
 - Negative prompts & SDXL dual‑prompt support
 - A small `make_grid` utility to tile images with labels
 
@@ -20,19 +20,25 @@ single, clean interface.
 
 ## 1. Installation
 
-You’ll need:
+You'll need:
 
 - Python 3.9+
 - PyTorch with CUDA (recommended) or CPU
 - `diffusers`, `transformers`, `accelerate`, `safetensors`, `Pillow`, `numpy`
 
-Example install:
+### Quick Install
+
+Clone the repository and install dependencies:
 
 ```bash
-pip install torch diffusers transformers accelerate safetensors pillow numpy
+git clone https://github.com/leochlon/ITO.git
+cd ITO
+pip install -r requirements.txt
 ```
 
-> Make sure your PyTorch build matches your CUDA version if you’re on GPU.
+The `requirements.txt` file includes all necessary dependencies with pinned versions for reproducibility.
+
+> **Note:** Make sure your PyTorch build matches your CUDA version if you're on GPU.
 
 By default the pipeline loads:
 
@@ -61,55 +67,76 @@ This means:
 
 - Early steps (high noise, strong text signal) tend to get higher λ.
 - Later steps (low noise, weaker text signal) tend to get lower λ.
-- You control how “hard” the model is pushed overall via a single `budget`
+- You control how "hard" the model is pushed overall via a single `budget`
   (instead of guessing a fixed CFG scale).
 
-On top of that, there’s an `alpha` soft‑rescale that stabilizes guidance by
-matching the variance of the guided noise to the “pure text” direction.
+On top of that, there's an `alpha` soft‑rescale that stabilizes guidance by
+matching the variance of the guided noise to the "pure text" direction.
 
 ---
 
 ## 3. Quickstart
 
-Import from `ITO` (this repo’s module file is `ITO.py`):
+### 3.1 Running ITO.py with CLI
 
-```python
-from ITO import ITOPipeline
+An easy way to try ITO is to run the module directly with command-line arguments:
 
-# Create the pipeline (loads SDXL weights)
-ito = ITOPipeline()
+```bash
+bash# Use default prompt
+python ITO.py
 
-prompt = "a cozy cabin in a snowy forest, warm lights in the windows"
+# Custom prompt
+python ITO.py --prompt "cozy cabin in the mountains"
+python ITO.py -p "futuristic cityscape at sunset"
 
-# --- ITO-guided generation ---
-image_ito, total_kl, lambdas = ito.generate_ito(
-    prompt=prompt,
-    negative_prompt="low quality, blurry, distorted, text",
-    budget=40.0,
-    lambda_max=7.5,
-    num_steps=40,
-    height=1024,
-    width=1024,
-    alpha=0.3,
-    seed=42,
-    verbose=False,
-)
-image_ito.save("cabin_ito.png")
+# Full customization
+python ITO.py -p "a serene lake" -n "blurry, ugly" --budget 50 --steps 30 --alpha 0.5
 
-# --- Baseline SDXL with fixed CFG ---
-image_fixed = ito.generate_fixed(
-    prompt=prompt,
-    negative_prompt="low quality, blurry, distorted, text",
-    guidance_scale=7.5,
-    num_steps=40,
-    height=1024,
-    width=1024,
-    seed=42,
-)
-image_fixed.save("cabin_fixed.png")
+# Skip baseline comparison (only generate ITO)
+python ITO.py -p "forest path" --no-baseline
+
+# Custom output filename
+python ITO.py -p "mountain vista" -o my_mountain
+
+# View all options
+python ITO.py --help
+```
+This will generate comparison images using the specified prompt and save them to the current directory, demonstrating the difference between ITO guidance and standard fixed CFG.
+
+**Available CLI options:**
+
+```
+--prompt, -p: Main text prompt (default: "a photo of an astronaut riding a horse on mars")
+--negative, -n: Negative prompt (default: "blurry, low resolution, ugly")
+--budget, -b: KL budget for ITO guidance (default: 40.0)
+--lambda-max: Maximum guidance strength per step (default: 7.5)
+--alpha, -a: Rescale factor, 0=aggressive, 1=stable (default: 0.3)
+--steps, -s: Number of diffusion steps (default: 40)
+--cfg: Fixed CFG scale for baseline comparison (default: 7.5)
+--seed: Random seed for reproducibility (default: 42)
+--height: Image height in pixels (default: 1024)
+--width: Image width in pixels (default: 1024)
+--output, -o: Output filename prefix (default: "output")
+--no-baseline: Skip baseline CFG generation
+--no-grid: Skip comparison grid generation
+--quiet, -q: Suppress verbos
 ```
 
-You can then compare `cabin_ito.png` vs `cabin_fixed.png`.
+### 3.2 Running the Web Application
+
+For an interactive web interface, run the Gradio app:
+
+```bash
+python app.py
+```
+
+This will launch a local web server where you can:
+- Enter custom prompts and negative prompts
+- Adjust ITO parameters (budget, lambda_max, alpha)
+- **Compare ITO vs fixed CFG side-by-side**
+- Download generated images
+
+The app will be accessible at `http://localhost:7860` (or another port if 7860 is in use).
 
 ---
 
@@ -203,7 +230,7 @@ This is a convenience wrapper for standard SDXL generation, but:
 
 Use this to:
 
-- Get a “baseline” SDXL image for comparison with the ITO version.
+- Get a "baseline" SDXL image for comparison with the ITO version.
 - Enjoy more stable VAE decoding than the default fp16 path.
 
 ---
@@ -225,51 +252,21 @@ grid.save("comparison_grid.png")
 
 ---
 
-## 5. Example: Comparing ITO vs Fixed CFG
+## 5. Repository Structure
 
-```python
-from ITO import ITOPipeline, make_grid
-
-ito = ITOPipeline()
-
-prompt = "a futuristic cityscape at dusk, cinematic lighting, ultra-detailed"
-neg = "low quality, blurry, distorted, text, watermark"
-
-image_ito, total_kl, lambdas = ito.generate_ito(
-    prompt=prompt,
-    negative_prompt=neg,
-    budget=40.0,
-    lambda_max=7.5,
-    num_steps=30,
-    alpha=0.25,
-    height=1024,
-    width=1024,
-    seed=1234,
-    verbose=False,
-)
-
-image_cfg = ito.generate_fixed(
-    prompt=prompt,
-    negative_prompt=neg,
-    guidance_scale=7.5,
-    num_steps=30,
-    height=1024,
-    width=1024,
-    seed=1234,
-)
-
-grid = make_grid(
-    images=[image_ito, image_cfg],
-    labels=[f"ITO (KL={total_kl:.1f})", "CFG=7.5"],
-)
-grid.save("ito_vs_cfg.png")
+```
+ITO/
+├── ITO.py              # Main pipeline implementation
+├── app.py              # Gradio web interface
+├── requirements.txt    # Python dependencies
+└── README.md          # This file
 ```
 
 ---
 
 ## 6. Tips & Notes
 
-- GPU strongly recommended. SDXL at 1024×1024 on CPU is extremely slow.
+- **GPU strongly recommended.** SDXL at 1024×1024 on CPU is extremely slow.
 - If you hit NaNs / infs in latents, the code already:
   - Detects non‑finite values.
   - Sanitizes them with `torch.nan_to_num`.
@@ -278,7 +275,7 @@ grid.save("ito_vs_cfg.png")
   - Reducing `num_steps`.
 - `budget`, `lambda_max`, and `alpha` are meant to be tunable knobs:
   - Start with `budget=30–50`, `lambda_max=7.5`, `alpha=0.3`.
-  - Increase `budget` for more “locked‑in” prompt adherence (at risk of artifacts).
+  - Increase `budget` for more "locked‑in" prompt adherence (at risk of artifacts).
   - Increase `alpha` for more stability / less aggressive guidance.
 
 ---
@@ -290,9 +287,9 @@ provided by Stability AI via Hugging Face. Please make sure your usage complies
 with:
 
 - The license terms of the SDXL model you load (e.g. `stabilityai/stable-diffusion-xl-base-1.0`).
-- Hugging Face’s and Stability AI’s usage policies.
+- Hugging Face's and Stability AI's usage policies.
 
-Based on our upcoming preprint “Information-Budgeted Inference-Time Optimization for Diffusion Models: A Theoretical Foundation with Event-Level Guarantees”.
+Based on our upcoming preprint "Information-Budgeted Inference-Time Optimization for Diffusion Models: A Theoretical Foundation with Event-Level Guarantees".
 
 This code is released under the MIT License by Hassana Labs Ltd.
 
