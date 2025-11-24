@@ -3,6 +3,8 @@ import torch
 from diffusers import StableDiffusionXLPipeline
 from PIL import Image, ImageDraw
 from typing import List, Tuple, Optional
+import argparse
+
 
 class ITOPipeline:
     """
@@ -375,33 +377,96 @@ def make_grid(images: List[Image.Image], labels: List[str]) -> Image.Image:
 
 
 if __name__ == "__main__":
-
+    parser = argparse.ArgumentParser(
+        description='Generate images using ITO guidance with SDXL',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    
+    parser.add_argument('--prompt', '-p', type=str, 
+                       default="a photo of an astronaut riding a horse on mars",
+                       help='Image generation prompt')
+    parser.add_argument('--negative', '-n', type=str, 
+                       default="blurry, low resolution, ugly",
+                       help='Negative prompt')
+    parser.add_argument('--budget', '-b', type=float, default=40.0,
+                       help='KL budget for ITO guidance')
+    parser.add_argument('--lambda-max', type=float, default=7.5,
+                       help='Maximum guidance strength per step')
+    parser.add_argument('--alpha', '-a', type=float, default=0.3,
+                       help='Rescale factor (0=aggressive, 1=stable)')
+    parser.add_argument('--steps', '-s', type=int, default=40,
+                       help='Number of diffusion steps')
+    parser.add_argument('--cfg', type=float, default=7.5,
+                       help='Fixed CFG scale for baseline')
+    parser.add_argument('--seed', type=int, default=42,
+                       help='Random seed')
+    parser.add_argument('--height', type=int, default=1024,
+                       help='Image height in pixels')
+    parser.add_argument('--width', type=int, default=1024,
+                       help='Image width in pixels')
+    parser.add_argument('--output', '-o', type=str, default='output',
+                       help='Output filename prefix')
+    parser.add_argument('--no-baseline', action='store_true',
+                       help='Skip baseline CFG generation')
+    parser.add_argument('--no-grid', action='store_true',
+                       help='Skip grid generation')
+    parser.add_argument('--quiet', '-q', action='store_true',
+                       help='Suppress verbose output')
+    
+    args = parser.parse_args()
+    
+    # Initialize pipeline
     ito = ITOPipeline()
-    prompt = "a photo of an astronaut riding a horse on mars"
-    negative_prompt = "blurry, low resolution, ugly"
-
-    # Generate with ITO guidance
+    
+    print(f"Prompt: {args.prompt}")
+    print(f"Generating with ITO (budget={args.budget}, steps={args.steps})...")
+    
+    # Generate ITO image
     image_ito, total_kl, lambdas = ito.generate_ito(
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        budget=40.0,
-        lambda_max=7.5,
-        num_steps=40,
-        seed=42,
-        verbose=False,
+        prompt=args.prompt,
+        negative_prompt=args.negative,
+        budget=args.budget,
+        lambda_max=args.lambda_max,
+        alpha=args.alpha,
+        num_steps=args.steps,
+        height=args.height,
+        width=args.width,
+        seed=args.seed,
+        verbose=not args.quiet,
     )
-
-    # Generate with fixed guidance
-    image_fixed = ito.generate_fixed(
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        guidance_scale=7.5,
-        num_steps=40,
-        seed=42,
-    )
-
-    # Create a grid to display both images
-    grid_image = make_grid([image_fixed,image_ito], labels=["Fixed Guidance","ITO Guided"])
-
-    # Display the grid image
-    display(grid_image)
+    
+    ito_filename = f"{args.output}_ito.png"
+    image_ito.save(ito_filename)
+    print(f"Saved: {ito_filename}")
+    
+    images = [image_ito]
+    labels = [f"ITO (KL={total_kl:.1f})"]
+    
+    # Generate baseline if requested
+    if not args.no_baseline:
+        print(f"Generating baseline (CFG={args.cfg})...")
+        image_cfg = ito.generate_fixed(
+            prompt=args.prompt,
+            negative_prompt=args.negative,
+            guidance_scale=args.cfg,
+            num_steps=args.steps,
+            height=args.height,
+            width=args.width,
+            seed=args.seed,
+        )
+        
+        cfg_filename = f"{args.output}_cfg.png"
+        image_cfg.save(cfg_filename)
+        print(f"Saved: {cfg_filename}")
+        
+        images.insert(0, image_cfg)
+        labels.insert(0, f"CFG={args.cfg}")
+    
+    # Create comparison grid
+    if not args.no_grid and len(images) > 1:
+        grid = make_grid(images, labels)
+        grid_filename = f"{args.output}_comparison.png"
+        grid.save(grid_filename)
+        print(f"Saved: {grid_filename}")
+    
+    print("Done!")
