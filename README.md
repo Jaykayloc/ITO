@@ -124,17 +124,21 @@ This will generate comparison images using the specified prompt and save them to
 
 ### 3.2 Running the Web Application
 
-For an interactive web interface, run the Gradio app:
+For an interactive web interface:
+
+**1.** Try it online: 🤗 [Our Hugging Face Space for ITO](https://huggingface.co/spaces/sirine16/ITO)
+
+**2.** Or run it locally with the Gradio app:
 
 ```bash
 python app.py
 ```
 
 This will launch a local web server where you can:
-- Enter custom prompts and negative prompts
-- Adjust ITO parameters (budget, lambda_max, alpha)
-- **Compare ITO vs fixed CFG side-by-side**
-- Download generated images
+  - Enter custom prompts and negative prompts
+  - Adjust ITO parameters (budget, lambda_max, alpha)
+  - **Compare ITO vs fixed CFG side-by-side**
+  - Download generated images
 
 The app will be accessible at `http://localhost:7860` (or another port if 7860 is in use).
 
